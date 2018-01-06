@@ -1,0 +1,34 @@
+#!/bin/vbash
+source /opt/vyatta/etc/functions/script-template
+
+IP=$(ip addr show dev eth4 | awk '{match($0,/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/); ip = substr($0,RSTART,RLENGTH); print ip}' | sed '/^$/d')
+
+IP2=$(configure; show vpn l2tp remote-access outside-address | cut -f3 -d ' ';)
+
+IP3=$(curl -m 10 ifconfig.co)
+
+if [ -z "$IP3" ]
+then
+  logger -p local0.notice [IPERROR] "ifconfig.co isn't responding. is the whole internet down??"
+  break
+fi
+
+if [ $IP = $IP2 ] && [ $IP = $IP3 ]
+then
+
+  logger -p local0.notice [IPCOOL] "Config had $IP2 while the web matched with $IP3" 
+
+else
+  logger -p local0.notice [HIPJINX] "Config had $IP2 while the web returned $IP3" 
+  logger -p local0.notice [HIPJINX] "Attempting to correct." 
+  logger -p local0.notice [HIPJINX] "Setting VPN to listen on $IP3" 
+  set vpn l2tp remote-access outside-address $IP3 
+  logger -p local0.notice [HIPJINX] "Setting forwarding for RasPi" 
+  set nat destination rule 20 destination address $IP3
+  commit
+  exit
+fi
+
+
+
+
