@@ -1,0 +1,889 @@
+firewall {
+    all-ping enable
+    broadcast-ping disable
+    config-trap enable
+    group {
+        network-group NET-BLACKLISTED {
+            network 1.1.1.1/32
+        }
+        network-group NET-DMZ {
+            network 192.168.10.0/24
+        }
+        network-group NET-LAN {
+            network 192.168.20.0/24
+        }
+        network-group NET-MANAGEMENT {
+            network 192.168.30.0/24
+        }
+        network-group NET-WAN {
+            network 73.97.36.0/23
+        }
+    }
+    ipv6-receive-redirects disable
+    ipv6-src-route disable
+    ip-src-route disable
+    log-martians enable
+    name DMZ-IN {
+        default-action drop
+        enable-default-log
+        rule 1000 {
+            action drop
+            source {
+                group {
+                    network-group NET-BLACKLISTED
+                }
+            }
+        }
+        rule 1001 {
+            action drop
+            destination {
+                group {
+                    network-group NET-BLACKLISTED
+                }
+            }
+        }
+        rule 1010 {
+            action accept
+            state {
+                established enable
+                related enable
+            }
+        }
+        rule 1011 {
+            action drop
+            log enable
+            state {
+                invalid enable
+            }
+        }
+    }
+    name DMZ-LOCAL {
+        default-action drop
+        enable-default-log
+        rule 1000 {
+            action drop
+            source {
+                group {
+                    network-group NET-BLACKLISTED
+                }
+            }
+        }
+        rule 1010 {
+            action accept
+            state {
+                established enable
+                related enable
+            }
+        }
+        rule 1011 {
+            action drop
+            state {
+                invalid enable
+            }
+        }
+        rule 1020 {
+            action accept
+            icmp {
+                type-name echo-request
+            }
+            protocol icmp
+            state {
+                new enable
+            }
+        }
+        rule 1030 {
+            action accept
+            destination {
+                port 67
+            }
+            protocol udp
+            state {
+                new enable
+            }
+        }
+        rule 1040 {
+            action accept
+            destination {
+                port 53
+            }
+            protocol tcp_udp
+            state {
+                new enable
+            }
+        }
+        rule 1050 {
+            action accept
+            destination {
+                port 123
+            }
+            protocol udp
+            state {
+                new enable
+            }
+        }
+        rule 1100 {
+            action drop
+            destination {
+                port 22
+            }
+            protocol tcp
+            recent {
+                count 3
+                time 90
+            }
+            source {
+                group {
+                    network-group NET-MANAGEMENT
+                }
+            }
+            state {
+                new enable
+            }
+        }
+        rule 1101 {
+            action accept
+            destination {
+                port 22
+            }
+            protocol tcp
+            source {
+                group {
+                    network-group NET-MANAGEMENT
+                }
+            }
+            state {
+                new enable
+            }
+        }
+        rule 1110 {
+            action accept
+            destination {
+                port 161
+            }
+            protocol udp
+            source {
+                group {
+                    network-group NET-MANAGEMENT
+                }
+            }
+            state {
+                new enable
+            }
+        }
+    }
+    name DMZ-OUT {
+        default-action drop
+        enable-default-log
+        rule 1000 {
+            action drop
+            source {
+                group {
+                    network-group NET-BLACKLISTED
+                }
+            }
+        }
+        rule 1001 {
+            action drop
+            destination {
+                group {
+                    network-group NET-BLACKLISTED
+                }
+            }
+        }
+        rule 1010 {
+            action accept
+            state {
+                established enable
+                related enable
+            }
+        }
+        rule 1011 {
+            action drop
+            log enable
+            state {
+                invalid enable
+            }
+        }
+        rule 1020 {
+            action accept
+            icmp {
+                type-name echo-request
+            }
+            protocol icmp
+            state {
+                new enable
+            }
+        }
+        rule 1100 {
+            action accept
+            source {
+                group {
+                    network-group NET-LAN
+                }
+            }
+            state {
+                new enable
+            }
+        }
+        rule 1101 {
+            action accept
+            source {
+                group {
+                    network-group NET-MANAGEMENT
+                }
+            }
+            state {
+                new enable
+            }
+        }
+        rule 4000 {
+            action accept
+            destination {
+                address 192.168.10.2
+                port 80,443,6501
+            }
+            protocol tcp
+            state {
+                new enable
+            }
+        }
+    }
+    name LAN-IN {
+        default-action drop
+        enable-default-log
+        rule 1000 {
+            action drop
+            source {
+                group {
+                    network-group NET-BLACKLISTED
+                }
+            }
+        }
+        rule 1001 {
+            action drop
+            destination {
+                group {
+                    network-group NET-BLACKLISTED
+                }
+            }
+        }
+        rule 1010 {
+            action accept
+            state {
+                established enable
+                related enable
+            }
+        }
+        rule 1011 {
+            action drop
+            log enable
+            state {
+                invalid enable
+            }
+        }
+        rule 9000 {
+            action accept
+            source {
+                group {
+                    network-group NET-LAN
+                }
+            }
+            state {
+                new enable
+            }
+        }
+    }
+    name LAN-LOCAL {
+        default-action drop
+        enable-default-log
+        rule 1000 {
+            action drop
+            source {
+                group {
+                    network-group NET-BLACKLISTED
+                }
+            }
+        }
+        rule 1010 {
+            action accept
+            state {
+                established enable
+                related enable
+            }
+        }
+        rule 1011 {
+            action drop
+            state {
+                invalid enable
+            }
+        }
+        rule 1020 {
+            action accept
+            protocol icmp
+            state {
+                new enable
+            }
+        }
+        rule 1030 {
+            action accept
+            destination {
+                port 67
+            }
+            protocol udp
+            state {
+                new enable
+            }
+        }
+        rule 1040 {
+            action accept
+            destination {
+                port 53
+            }
+            protocol tcp_udp
+            state {
+                new enable
+            }
+        }
+        rule 1050 {
+            action accept
+            destination {
+                port 123
+            }
+            protocol udp
+            state {
+                new enable
+            }
+        }
+        rule 1100 {
+            action drop
+            destination {
+                port 22
+            }
+            protocol tcp
+            recent {
+                count 3
+                time 90
+            }
+            source {
+                group {
+                    network-group NET-MANAGEMENT
+                }
+            }
+            state {
+                new enable
+            }
+        }
+        rule 1101 {
+            action accept
+            destination {
+                port 22
+            }
+            protocol tcp
+            source {
+                group {
+                    network-group NET-MANAGEMENT
+                }
+            }
+            state {
+                new enable
+            }
+        }
+        rule 1110 {
+            action accept
+            destination {
+                port 161
+            }
+            protocol udp
+            source {
+                group {
+                    network-group NET-MANAGEMENT
+                }
+            }
+            state {
+                new enable
+            }
+        }
+    }
+    name LAN-OUT {
+        default-action drop
+        enable-default-log
+        rule 1000 {
+            action drop
+            source {
+                group {
+                    network-group NET-BLACKLISTED
+                }
+            }
+        }
+        rule 1001 {
+            action drop
+            destination {
+                group {
+                    network-group NET-BLACKLISTED
+                }
+            }
+        }
+        rule 1010 {
+            action accept
+            state {
+                established enable
+                related enable
+            }
+        }
+        rule 1011 {
+            action drop
+            log enable
+            state {
+                invalid enable
+            }
+        }
+        rule 1020 {
+            action accept
+            icmp {
+                type-name echo-request
+            }
+            protocol icmp
+            state {
+                new enable
+            }
+        }
+    }
+    name WAN-LOCAL {
+        default-action drop
+        enable-default-log
+        rule 40 {
+            action accept
+            protocol esp
+        }
+        rule 41 {
+            action accept
+            destination {
+                port 500
+            }
+            protocol udp
+        }
+        rule 42 {
+            action accept
+            destination {
+                port 4500
+            }
+            protocol udp
+        }
+        rule 43 {
+            action accept
+            destination {
+                port 1701
+            }
+            ipsec {
+                match-ipsec
+            }
+            protocol udp
+        }
+        rule 1000 {
+            action drop
+            source {
+                group {
+                    network-group NET-BLACKLISTED
+                }
+            }
+        }
+        rule 1010 {
+            action accept
+            state {
+                established enable
+                related enable
+            }
+        }
+        rule 1011 {
+            action drop
+            state {
+                invalid enable
+            }
+        }
+        rule 1020 {
+            action accept
+            icmp {
+                type-name echo-request
+            }
+            protocol icmp
+            state {
+                new enable
+            }
+        }
+        rule 1100 {
+            action drop
+            destination {
+                port 22
+            }
+            protocol tcp
+            recent {
+                count 3
+                time 90
+            }
+            source {
+                group {
+                    network-group NET-MANAGEMENT
+                }
+            }
+            state {
+                new enable
+            }
+        }
+        rule 1101 {
+            action accept
+            destination {
+                port 22
+            }
+            protocol tcp
+            source {
+                group {
+                    network-group NET-MANAGEMENT
+                }
+            }
+            state {
+                new enable
+            }
+        }
+        rule 1110 {
+            action accept
+            destination {
+                port 161
+            }
+            protocol udp
+            source {
+                group {
+                    network-group NET-MANAGEMENT
+                }
+            }
+            state {
+                new enable
+            }
+        }
+    }
+    receive-redirects disable
+    send-redirects disable
+    source-validation disable
+    state-policy {
+        established {
+            action accept
+        }
+        invalid {
+            action drop
+            log {
+                enable
+            }
+        }
+        related {
+            action accept
+        }
+    }
+    syn-cookies enable
+    twa-hazards-protection disable
+}
+interfaces {
+    ethernet eth0 {
+        address 192.168.99.1/24
+        description InternalGNS3DMZ
+        duplex auto
+        hw-id 52:54:00:09:1b:d1
+        smp_affinity auto
+        speed auto
+    }
+    ethernet eth1 {
+        address 192.168.10.1/24
+        description Vlan10Server
+        duplex auto
+        firewall {
+            in {
+                name DMZ-IN
+            }
+            local {
+                name DMZ-LOCAL
+            }
+            out {
+                name DMZ-OUT
+            }
+        }
+        hw-id 52:54:00:28:f3:02
+        smp_affinity auto
+        speed auto
+    }
+    ethernet eth2 {
+        address 192.168.20.1/24
+        description Vlan20Client
+        duplex auto
+        firewall {
+            in {
+                name LAN-IN
+            }
+            local {
+                name LAN-LOCAL
+            }
+            out {
+                name LAN-OUT
+            }
+        }
+        hw-id 52:54:00:0d:39:44
+        smp_affinity auto
+        speed auto
+    }
+    ethernet eth3 {
+        address 192.168.30.1/24
+        description Vlan30MGMT
+        duplex auto
+        firewall {
+        }
+        hw-id 52:54:00:18:0e:49
+        smp_affinity auto
+        speed auto
+    }
+    ethernet eth4 {
+        address dhcp
+        description OUTSIDE
+        duplex auto
+        firewall {
+            local {
+                name WAN-LOCAL
+            }
+        }
+        hw-id 52:54:00:0a:e0:64
+        smp_affinity auto
+        speed auto
+    }
+    loopback lo {
+    }
+}
+nat {
+    destination {
+        rule 20 {
+            description "forward to rpi"
+            destination {
+                address 73.97.36.98
+                port 80,443
+            }
+            inbound-interface any
+            protocol tcp
+            translation {
+                address 192.168.10.2
+            }
+        }
+    }
+    source {
+        rule 100 {
+            outbound-interface eth4
+            source {
+                address 192.168.0.0/16
+            }
+            translation {
+                address masquerade
+            }
+        }
+        rule 110 {
+            description "NAT Reflection: INSIDE"
+            destination {
+                address 192.168.0.0/16
+            }
+            outbound-interface eth1
+            source {
+                address 192.168.0.0/16
+            }
+            translation {
+                address masquerade
+            }
+        }
+        rule 111 {
+            description "NAT Reflection: INSIDE2"
+            destination {
+                address 192.168.0.0/16
+            }
+            outbound-interface eth2
+            source {
+                address 192.168.0.0/16
+            }
+            translation {
+                address masquerade
+            }
+        }
+        rule 112 {
+            description "NAT Reflection: INSIDE3"
+            destination {
+                address 192.168.00.0/16
+            }
+            outbound-interface eth3
+            source {
+                address 192.168.0.0/16
+            }
+            translation {
+                address masquerade
+            }
+        }
+    }
+}
+protocols {
+    static {
+        route 10.0.0.0/8 {
+            blackhole {
+                distance 254
+            }
+        }
+        route 172.16.0.0/12 {
+            blackhole {
+                distance 254
+            }
+        }
+        route 192.168.0.0/16 {
+            blackhole {
+                distance 254
+            }
+        }
+    }
+}
+service {
+    dhcp-server {
+        disabled false
+        shared-network-name LAN {
+            authoritative enable
+            subnet 192.168.20.0/24 {
+                default-router 192.168.20.1
+                dns-server 192.168.20.1
+                domain-name int-net
+                lease 86400
+                start 192.168.20.40 {
+                    stop 192.168.20.254
+                }
+                static-mapping rrubuntu {
+                    ip-address 192.168.20.10
+                    mac-address 3c:97:0e:1a:2b:c8
+                }
+            }
+        }
+    }
+    dns {
+        forwarding {
+            cache-size 0
+            listen-on eth2
+            listen-on eth1
+            listen-on eth3
+            listen-on eth0
+            name-server 8.8.8.8
+            name-server 8.8.4.4
+        }
+    }
+    ssh {
+        port 22
+    }
+}
+system {
+    config-management {
+        commit-revisions 20
+    }
+    console {
+        device ttyS0 {
+            speed 9600
+        }
+    }
+    host-name vyos
+    login {
+        user eris {
+            authentication {
+                encrypted-password ****************
+                plaintext-password ****************
+                public-keys eris@wherever {
+                    key ****************
+                    type ssh-rsa
+                }
+            }
+            full-name Eris
+            level admin
+        }
+    }
+    ntp {
+        server 0.pool.ntp.org {
+        }
+        server 1.pool.ntp.org {
+        }
+        server 2.pool.ntp.org {
+        }
+    }
+    package {
+        auto-sync 1
+        repository community {
+            components main
+            distribution helium
+            password ****************
+            url http://packages.vyos.net/vyos
+            username ""
+        }
+    }
+    syslog {
+        global {
+            facility all {
+                level notice
+            }
+            facility protocols {
+                level debug
+            }
+        }
+    }
+    time-zone UTC
+}
+vpn {
+    ipsec {
+        ike-group IKE_POLICY {
+            dead-peer-detection {
+                action clear
+                interval 30
+                timeout 90
+            }
+            ikev2-reauth no
+            key-exchange ikev2
+            lifetime 3600
+            proposal 1 {
+                dh-group 14
+                encryption aes256
+                hash sha256
+            }
+        }
+        ipsec-interfaces {
+            interface eth4
+        }
+        nat-networks {
+            allowed-network 0.0.0.0/0 {
+            }
+        }
+        nat-traversal enable
+    }
+    l2tp {
+        remote-access {
+            authentication {
+                local-users {
+                    username bobert51 {
+                        password ****************
+                    }
+                    username nick {
+                        password ****************
+                    }
+                }
+                mode local
+            }
+            client-ip-pool {
+                start 192.168.20.242
+                stop 192.168.20.250
+            }
+            description "VPN for labbing and remote admin"
+            dns-servers {
+                server-1 8.8.8.8
+                server-2 8.8.4.4
+            }
+            ipsec-settings {
+                authentication {
+                    mode pre-shared-secret
+                    pre-shared-secret ****************
+                }
+                ike-lifetime 3600
+            }
+            mtu 1492
+            outside-address 73.97.36.98
+        }
+    }
+}

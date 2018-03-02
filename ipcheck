@@ -17,18 +17,24 @@ if [ $IP = $IP2 ] && [ $IP = $IP3 ]
 then
 
   logger -p local0.notice [IPCOOL] "Config had $IP2 while the web matched with $IP3" 
+  exit
 
 else
+
   logger -p local0.notice [HIPJINX] "Config had $IP2 while the web returned $IP3" 
   logger -p local0.notice [HIPJINX] "Attempting to correct." 
   logger -p local0.notice [HIPJINX] "Setting VPN to listen on $IP3" 
   set vpn l2tp remote-access outside-address $IP3 
   logger -p local0.notice [HIPJINX] "Setting forwarding for RasPi" 
   set nat destination rule 20 destination address $IP3
-  commit
+  logger -p local0.notice [HIPJINX] "Setting firewall group network"
+  NEW_NET=$(ip addr show dev eth4 | awk '{match($0,/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\/[0-9]+/); sub(/[0-9]+\//, "0/"); ip = substr($0,RSTART,RLENGTH); print ip}' | sed '/^$/d')
+  set firewall group network-group NET-WAN network $NEW_NET
+  commit && save
   exit
+
 fi
 
-
+exit
 
 
